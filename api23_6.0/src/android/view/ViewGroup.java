@@ -224,7 +224,7 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
      * NOTE: If you change the flags below make sure to reflect the changes
      *       the DisplayList class
      */
-    
+
     // When set, ViewGroup invalidates only the child's rectangle
     // Set by default
     static final int FLAG_CLIP_CHILDREN = 0x1;
@@ -269,7 +269,7 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
     /**
      * When set, the drawing method will call {@link #getChildDrawingOrder(int, int)}
      * to get the index of the child to draw for that iteration.
-     * 
+     *
      * @hide
      */
     protected static final int FLAG_USE_CHILD_DRAWING_ORDER = 0x400;
@@ -672,9 +672,9 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
      *   {@link #FOCUS_BLOCK_DESCENDANTS}.
      */
     @ViewDebug.ExportedProperty(category = "focus", mapping = {
-        @ViewDebug.IntToString(from = FOCUS_BEFORE_DESCENDANTS, to = "FOCUS_BEFORE_DESCENDANTS"),
-        @ViewDebug.IntToString(from = FOCUS_AFTER_DESCENDANTS, to = "FOCUS_AFTER_DESCENDANTS"),
-        @ViewDebug.IntToString(from = FOCUS_BLOCK_DESCENDANTS, to = "FOCUS_BLOCK_DESCENDANTS")
+            @ViewDebug.IntToString(from = FOCUS_BEFORE_DESCENDANTS, to = "FOCUS_BEFORE_DESCENDANTS"),
+            @ViewDebug.IntToString(from = FOCUS_AFTER_DESCENDANTS, to = "FOCUS_AFTER_DESCENDANTS"),
+            @ViewDebug.IntToString(from = FOCUS_BLOCK_DESCENDANTS, to = "FOCUS_BLOCK_DESCENDANTS")
     })
     public int getDescendantFocusability() {
         return mGroupFlags & FLAG_MASK_FOCUSABILITY;
@@ -1322,7 +1322,7 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
             children[i].dispatchConfigurationChanged(newConfig);
         }
     }
-    
+
     /**
      * {@inheritDoc}
      */
@@ -1382,108 +1382,108 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
         final PointF localPoint = getLocalPoint();
 
         switch (event.mAction) {
-        case DragEvent.ACTION_DRAG_STARTED: {
-            // clear state to recalculate which views we drag over
-            mCurrentDragView = null;
+            case DragEvent.ACTION_DRAG_STARTED: {
+                // clear state to recalculate which views we drag over
+                mCurrentDragView = null;
 
-            // Set up our tracking of drag-started notifications
-            mCurrentDrag = DragEvent.obtain(event);
-            if (mDragNotifiedChildren == null) {
-                mDragNotifiedChildren = new HashSet<View>();
-            } else {
-                mDragNotifiedChildren.clear();
-            }
+                // Set up our tracking of drag-started notifications
+                mCurrentDrag = DragEvent.obtain(event);
+                if (mDragNotifiedChildren == null) {
+                    mDragNotifiedChildren = new HashSet<View>();
+                } else {
+                    mDragNotifiedChildren.clear();
+                }
 
-            // Now dispatch down to our children, caching the responses
-            mChildAcceptsDrag = false;
-            final int count = mChildrenCount;
-            final View[] children = mChildren;
-            for (int i = 0; i < count; i++) {
-                final View child = children[i];
-                child.mPrivateFlags2 &= ~View.DRAG_MASK;
-                if (child.getVisibility() == VISIBLE) {
-                    final boolean handled = notifyChildOfDrag(children[i]);
-                    if (handled) {
-                        mChildAcceptsDrag = true;
+                // Now dispatch down to our children, caching the responses
+                mChildAcceptsDrag = false;
+                final int count = mChildrenCount;
+                final View[] children = mChildren;
+                for (int i = 0; i < count; i++) {
+                    final View child = children[i];
+                    child.mPrivateFlags2 &= ~View.DRAG_MASK;
+                    if (child.getVisibility() == VISIBLE) {
+                        final boolean handled = notifyChildOfDrag(children[i]);
+                        if (handled) {
+                            mChildAcceptsDrag = true;
+                        }
                     }
                 }
-            }
 
-            // Return HANDLED if one of our children can accept the drag
-            if (mChildAcceptsDrag) {
-                retval = true;
-            }
-        } break;
+                // Return HANDLED if one of our children can accept the drag
+                if (mChildAcceptsDrag) {
+                    retval = true;
+                }
+            } break;
 
-        case DragEvent.ACTION_DRAG_ENDED: {
-            // Release the bookkeeping now that the drag lifecycle has ended
-            if (mDragNotifiedChildren != null) {
-                for (View child : mDragNotifiedChildren) {
-                    // If a child was notified about an ongoing drag, it's told that it's over
-                    child.dispatchDragEvent(event);
-                    child.mPrivateFlags2 &= ~View.DRAG_MASK;
-                    child.refreshDrawableState();
+            case DragEvent.ACTION_DRAG_ENDED: {
+                // Release the bookkeeping now that the drag lifecycle has ended
+                if (mDragNotifiedChildren != null) {
+                    for (View child : mDragNotifiedChildren) {
+                        // If a child was notified about an ongoing drag, it's told that it's over
+                        child.dispatchDragEvent(event);
+                        child.mPrivateFlags2 &= ~View.DRAG_MASK;
+                        child.refreshDrawableState();
+                    }
+
+                    mDragNotifiedChildren.clear();
+                    if (mCurrentDrag != null) {
+                        mCurrentDrag.recycle();
+                        mCurrentDrag = null;
+                    }
                 }
 
-                mDragNotifiedChildren.clear();
-                if (mCurrentDrag != null) {
-                    mCurrentDrag.recycle();
-                    mCurrentDrag = null;
+                // We consider drag-ended to have been handled if one of our children
+                // had offered to handle the drag.
+                if (mChildAcceptsDrag) {
+                    retval = true;
                 }
-            }
+            } break;
 
-            // We consider drag-ended to have been handled if one of our children
-            // had offered to handle the drag.
-            if (mChildAcceptsDrag) {
-                retval = true;
-            }
-        } break;
+            case DragEvent.ACTION_DRAG_LOCATION: {
+                // Find the [possibly new] drag target
+                final View target = findFrontmostDroppableChildAt(event.mX, event.mY, localPoint);
 
-        case DragEvent.ACTION_DRAG_LOCATION: {
-            // Find the [possibly new] drag target
-            final View target = findFrontmostDroppableChildAt(event.mX, event.mY, localPoint);
+                // If we've changed apparent drag target, tell the view root which view
+                // we're over now [for purposes of the eventual drag-recipient-changed
+                // notifications to the framework] and tell the new target that the drag
+                // has entered its bounds.  The root will see setDragFocus() calls all
+                // the way down to the final leaf view that is handling the LOCATION event
+                // before reporting the new potential recipient to the framework.
+                if (mCurrentDragView != target) {
+                    root.setDragFocus(target);
 
-            // If we've changed apparent drag target, tell the view root which view
-            // we're over now [for purposes of the eventual drag-recipient-changed
-            // notifications to the framework] and tell the new target that the drag
-            // has entered its bounds.  The root will see setDragFocus() calls all
-            // the way down to the final leaf view that is handling the LOCATION event
-            // before reporting the new potential recipient to the framework.
-            if (mCurrentDragView != target) {
-                root.setDragFocus(target);
+                    final int action = event.mAction;
+                    // If we've dragged off of a child view, send it the EXITED message
+                    if (mCurrentDragView != null) {
+                        final View view = mCurrentDragView;
+                        event.mAction = DragEvent.ACTION_DRAG_EXITED;
+                        view.dispatchDragEvent(event);
+                        view.mPrivateFlags2 &= ~View.PFLAG2_DRAG_HOVERED;
+                        view.refreshDrawableState();
+                    }
+                    mCurrentDragView = target;
 
-                final int action = event.mAction;
-                // If we've dragged off of a child view, send it the EXITED message
-                if (mCurrentDragView != null) {
-                    final View view = mCurrentDragView;
-                    event.mAction = DragEvent.ACTION_DRAG_EXITED;
-                    view.dispatchDragEvent(event);
-                    view.mPrivateFlags2 &= ~View.PFLAG2_DRAG_HOVERED;
-                    view.refreshDrawableState();
+                    // If we've dragged over a new child view, send it the ENTERED message
+                    if (target != null) {
+                        event.mAction = DragEvent.ACTION_DRAG_ENTERED;
+                        target.dispatchDragEvent(event);
+                        target.mPrivateFlags2 |= View.PFLAG2_DRAG_HOVERED;
+                        target.refreshDrawableState();
+                    }
+                    event.mAction = action;  // restore the event's original state
                 }
-                mCurrentDragView = target;
 
-                // If we've dragged over a new child view, send it the ENTERED message
+                // Dispatch the actual drag location notice, localized into its coordinates
                 if (target != null) {
-                    event.mAction = DragEvent.ACTION_DRAG_ENTERED;
-                    target.dispatchDragEvent(event);
-                    target.mPrivateFlags2 |= View.PFLAG2_DRAG_HOVERED;
-                    target.refreshDrawableState();
+                    event.mX = localPoint.x;
+                    event.mY = localPoint.y;
+
+                    retval = target.dispatchDragEvent(event);
+
+                    event.mX = tx;
+                    event.mY = ty;
                 }
-                event.mAction = action;  // restore the event's original state
-            }
-
-            // Dispatch the actual drag location notice, localized into its coordinates
-            if (target != null) {
-                event.mX = localPoint.x;
-                event.mY = localPoint.y;
-
-                retval = target.dispatchDragEvent(event);
-
-                event.mX = tx;
-                event.mY = ty;
-            }
-        } break;
+            } break;
 
         /* Entered / exited dispatch
          *
@@ -1497,33 +1497,33 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
          * is also no longer under the drag point.
          */
 
-        case DragEvent.ACTION_DRAG_EXITED: {
-            if (mCurrentDragView != null) {
-                final View view = mCurrentDragView;
-                view.dispatchDragEvent(event);
-                view.mPrivateFlags2 &= ~View.PFLAG2_DRAG_HOVERED;
-                view.refreshDrawableState();
+            case DragEvent.ACTION_DRAG_EXITED: {
+                if (mCurrentDragView != null) {
+                    final View view = mCurrentDragView;
+                    view.dispatchDragEvent(event);
+                    view.mPrivateFlags2 &= ~View.PFLAG2_DRAG_HOVERED;
+                    view.refreshDrawableState();
 
-                mCurrentDragView = null;
-            }
-        } break;
-
-        case DragEvent.ACTION_DROP: {
-            if (ViewDebug.DEBUG_DRAG) Log.d(View.VIEW_LOG_TAG, "Drop event: " + event);
-            View target = findFrontmostDroppableChildAt(event.mX, event.mY, localPoint);
-            if (target != null) {
-                if (ViewDebug.DEBUG_DRAG) Log.d(View.VIEW_LOG_TAG, "   dispatch drop to " + target);
-                event.mX = localPoint.x;
-                event.mY = localPoint.y;
-                retval = target.dispatchDragEvent(event);
-                event.mX = tx;
-                event.mY = ty;
-            } else {
-                if (ViewDebug.DEBUG_DRAG) {
-                    Log.d(View.VIEW_LOG_TAG, "   not dropped on an accepting view");
+                    mCurrentDragView = null;
                 }
-            }
-        } break;
+            } break;
+
+            case DragEvent.ACTION_DROP: {
+                if (ViewDebug.DEBUG_DRAG) Log.d(View.VIEW_LOG_TAG, "Drop event: " + event);
+                View target = findFrontmostDroppableChildAt(event.mX, event.mY, localPoint);
+                if (target != null) {
+                    if (ViewDebug.DEBUG_DRAG) Log.d(View.VIEW_LOG_TAG, "   dispatch drop to " + target);
+                    event.mX = localPoint.x;
+                    event.mY = localPoint.y;
+                    retval = target.dispatchDragEvent(event);
+                    event.mX = tx;
+                    event.mY = ty;
+                } else {
+                    if (ViewDebug.DEBUG_DRAG) {
+                        Log.d(View.VIEW_LOG_TAG, "   not dropped on an accepting view");
+                    }
+                }
+            } break;
         }
 
         // If none of our children could handle the event, try here
@@ -2252,7 +2252,7 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
                         final boolean cancelChild = resetCancelNextUpFlag(target.child)
                                 || intercepted;
                         if (dispatchTransformedTouchEvent(ev, cancelChild,
-                                target.child, target.pointerIdBits)) {
+                                target.child, target.pointerIdBits)) {//这里困惑了好久，看了开发艺术的结论懂了。如果子View的dispatch返回false，如果是在这块，并不会对事件的分发产生影响，后续的事件依旧会传到子View。但是如果是DOWN的时候，子View的dispatch返回了false，那代码逻辑在上面，事件会交给父亲来处理。针对这里的情况 ，如果返回false，事件就会消失，但是一路向上returnfalse，最后交给activity处理
                             handled = true;
                         }
                         if (cancelChild) {
@@ -2479,7 +2479,7 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
      * @hide
      */
     protected boolean isTransformedTouchPointInView(float x, float y, View child,
-            PointF outLocalPoint) {
+                                                    PointF outLocalPoint) {
         final float[] point = getTempPoint();
         point[0] = x;
         point[1] = y;
@@ -2509,7 +2509,7 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
      * If child is null, assumes the MotionEvent will be sent to this ViewGroup instead.
      */
     private boolean dispatchTransformedTouchEvent(MotionEvent event, boolean cancel,
-            View child, int desiredPointerIdBits) {
+                                                  View child, int desiredPointerIdBits) {
         final boolean handled;
 
         // Canceling motions is a special case.  We don't need to perform any transformations
@@ -2730,7 +2730,7 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
      * @see #FOCUS_BEFORE_DESCENDANTS
      * @see #FOCUS_AFTER_DESCENDANTS
      * @see #FOCUS_BLOCK_DESCENDANTS
-     * @see #onRequestFocusInDescendants(int, android.graphics.Rect) 
+     * @see #onRequestFocusInDescendants(int, android.graphics.Rect)
      */
     @Override
     public boolean requestFocus(int direction, Rect previouslyFocusedRect) {
@@ -2771,7 +2771,7 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
      */
     @SuppressWarnings({"ConstantConditions"})
     protected boolean onRequestFocusInDescendants(int direction,
-            Rect previouslyFocusedRect) {
+                                                  Rect previouslyFocusedRect) {
         int index;
         int increment;
         int end;
@@ -3237,7 +3237,7 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
     }
 
     private static void drawRectCorners(Canvas canvas, int x1, int y1, int x2, int y2, Paint paint,
-            int lineLength, int lineWidth) {
+                                        int lineLength, int lineWidth) {
         drawCorner(canvas, paint, x1, y1, lineLength, lineLength, lineWidth);
         drawCorner(canvas, paint, x1, y2, lineLength, -lineLength, lineWidth);
         drawCorner(canvas, paint, x2, y1, -lineLength, lineLength, lineWidth);
@@ -3245,8 +3245,8 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
     }
 
     private static void fillDifference(Canvas canvas,
-            int x2, int y2, int x3, int y3,
-            int dx1, int dy1, int dx2, int dy2, Paint paint) {
+                                       int x2, int y2, int x3, int y3,
+                                       int dx1, int dy1, int dx2, int dy2, Paint paint) {
         int x1 = x2 - dx1;
         int y1 = y2 - dy1;
 
@@ -3447,9 +3447,9 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
             // drawChild() after the animation is over
             mGroupFlags |= FLAG_NOTIFY_ANIMATION_LISTENER;
             final Runnable end = new Runnable() {
-               public void run() {
-                   notifyAnimationListener();
-               }
+                public void run() {
+                    notifyAnimationListener();
+                }
             };
             post(end);
         }
@@ -3544,12 +3544,12 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
         mGroupFlags |= FLAG_ANIMATION_DONE;
 
         if (mAnimationListener != null) {
-           final Runnable end = new Runnable() {
-               public void run() {
-                   mAnimationListener.onAnimationEnd(mLayoutAnimationController.getAnimation());
-               }
-           };
-           post(end);
+            final Runnable end = new Runnable() {
+                public void run() {
+                    mAnimationListener.onAnimationEnd(mLayoutAnimationController.getAnimation());
+                }
+            };
+            post(end);
         }
 
         invalidate(true);
@@ -4046,7 +4046,7 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
     /**
      * <p>Adds a child view. If no layout parameters are already set on the child, the
      * default parameters for this ViewGroup are set on the child.</p>
-     * 
+     *
      * <p><strong>Note:</strong> do not invoke this method from
      * {@link #draw(android.graphics.Canvas)}, {@link #onDraw(android.graphics.Canvas)},
      * {@link #dispatchDraw(android.graphics.Canvas)} or any related method.</p>
@@ -4062,7 +4062,7 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
     /**
      * Adds a child view. If no layout parameters are already set on the child, the
      * default parameters for this ViewGroup are set on the child.
-     * 
+     *
      * <p><strong>Note:</strong> do not invoke this method from
      * {@link #draw(android.graphics.Canvas)}, {@link #onDraw(android.graphics.Canvas)},
      * {@link #dispatchDraw(android.graphics.Canvas)} or any related method.</p>
@@ -4232,7 +4232,7 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
 
     private void clearCachedLayoutMode() {
         if (!hasBooleanFlag(FLAG_LAYOUT_MODE_WAS_EXPLICITLY_SET)) {
-           mLayoutMode = LAYOUT_MODE_UNDEFINED;
+            mLayoutMode = LAYOUT_MODE_UNDEFINED;
         }
     }
 
@@ -4277,7 +4277,7 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
      * @return true if the child was added, false otherwise
      */
     protected boolean addViewInLayout(View child, int index, LayoutParams params,
-            boolean preventRequestLayout) {
+                                      boolean preventRequestLayout) {
         if (child == null) {
             throw new IllegalArgumentException("Cannot add a null child view to a ViewGroup");
         }
@@ -4297,7 +4297,7 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
     }
 
     private void addViewInner(View child, int index, LayoutParams params,
-            boolean preventRequestLayout) {
+                              boolean preventRequestLayout) {
 
         if (mTransition != null) {
             // Don't prevent other add transitions from completing, but cancel remove
@@ -4484,9 +4484,9 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
      * @param count the number of children in the view group
      */
     protected void attachLayoutAnimationParameters(View child,
-            LayoutParams params, int index, int count) {
+                                                   LayoutParams params, int index, int count) {
         LayoutAnimationController.AnimationParameters animationParams =
-                    params.layoutAnimationParameters;
+                params.layoutAnimationParameters;
         if (animationParams == null) {
             animationParams = new LayoutAnimationController.AnimationParameters();
             params.layoutAnimationParameters = animationParams;
@@ -4498,7 +4498,7 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
 
     /**
      * {@inheritDoc}
-     * 
+     *
      * <p><strong>Note:</strong> do not invoke this method from
      * {@link #draw(android.graphics.Canvas)}, {@link #onDraw(android.graphics.Canvas)},
      * {@link #dispatchDraw(android.graphics.Canvas)} or any related method.</p>
@@ -4517,7 +4517,7 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
      * <p><strong>Note:</strong> do not invoke this method from
      * {@link #draw(android.graphics.Canvas)}, {@link #onDraw(android.graphics.Canvas)},
      * {@link #dispatchDraw(android.graphics.Canvas)} or any related method.</p>
-     * 
+     *
      * @param view the view to remove from the group
      */
     public void removeViewInLayout(View view) {
@@ -4545,7 +4545,7 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
      * <p><strong>Note:</strong> do not invoke this method from
      * {@link #draw(android.graphics.Canvas)}, {@link #onDraw(android.graphics.Canvas)},
      * {@link #dispatchDraw(android.graphics.Canvas)} or any related method.</p>
-     * 
+     *
      * @param index the position in the group of the view to remove
      */
     public void removeViewAt(int index) {
@@ -4600,7 +4600,7 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
                 (mTransitioningViews != null && mTransitioningViews.contains(view))) {
             addDisappearingView(view);
         } else if (view.mAttachInfo != null) {
-           view.dispatchDetachedFromWindow();
+            view.dispatchDetachedFromWindow();
         }
 
         if (view.hasTransientState()) {
@@ -4698,10 +4698,10 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
             cancelHoverTarget(view);
 
             if (view.getAnimation() != null ||
-                (mTransitioningViews != null && mTransitioningViews.contains(view))) {
+                    (mTransitioningViews != null && mTransitioningViews.contains(view))) {
                 addDisappearingView(view);
             } else if (detach) {
-               view.dispatchDetachedFromWindow();
+                view.dispatchDetachedFromWindow();
             }
 
             if (view.hasTransientState()) {
@@ -4726,7 +4726,7 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
     /**
      * Call this method to remove all child views from the
      * ViewGroup.
-     * 
+     *
      * <p><strong>Note:</strong> do not invoke this method from
      * {@link #draw(android.graphics.Canvas)}, {@link #onDraw(android.graphics.Canvas)},
      * {@link #dispatchDraw(android.graphics.Canvas)} or any related method.</p>
@@ -4786,7 +4786,7 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
                     (mTransitioningViews != null && mTransitioningViews.contains(view))) {
                 addDisappearingView(view);
             } else if (detach) {
-               view.dispatchDetachedFromWindow();
+                view.dispatchDetachedFromWindow();
             }
 
             if (view.hasTransientState()) {
@@ -4889,7 +4889,7 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
 
         child.mParent = this;
         child.mPrivateFlags = (child.mPrivateFlags & ~PFLAG_DIRTY_MASK
-                        & ~PFLAG_DRAWING_CACHE_VALID)
+                & ~PFLAG_DRAWING_CACHE_VALID)
                 | PFLAG_DRAWN | PFLAG_INVALIDATED;
         this.mPrivateFlags |= PFLAG_INVALIDATED;
 
@@ -5108,7 +5108,7 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
         if ((mPrivateFlags & PFLAG_DRAWN) == PFLAG_DRAWN ||
                 (mPrivateFlags & PFLAG_DRAWING_CACHE_VALID) == PFLAG_DRAWING_CACHE_VALID) {
             if ((mGroupFlags & (FLAG_OPTIMIZE_INVALIDATE | FLAG_ANIMATION_DONE)) !=
-                        FLAG_OPTIMIZE_INVALIDATE) {
+                    FLAG_OPTIMIZE_INVALIDATE) {
                 dirty.offset(location[CHILD_LEFT_INDEX] - mScrollX,
                         location[CHILD_TOP_INDEX] - mScrollY);
                 if ((mGroupFlags & FLAG_CLIP_CHILDREN) == 0) {
@@ -5278,7 +5278,7 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
      * descendant to parent.
      */
     void offsetRectBetweenParentAndChild(View descendant, Rect rect,
-            boolean offsetFromChildToParent, boolean clipToBounds) {
+                                         boolean offsetFromChildToParent, boolean clipToBounds) {
 
         // already in the same coord system :)
         if (descendant == this) {
@@ -5446,7 +5446,7 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
      */
     @Override
     protected abstract void onLayout(boolean changed,
-            int l, int t, int r, int b);
+                                     int l, int t, int r, int b);
 
     /**
      * Indicates whether the view group has the ability to animate its children
@@ -5672,10 +5672,10 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
      *         and {@link #PERSISTENT_ALL_CACHES}
      */
     @ViewDebug.ExportedProperty(category = "drawing", mapping = {
-        @ViewDebug.IntToString(from = PERSISTENT_NO_CACHE,        to = "NONE"),
-        @ViewDebug.IntToString(from = PERSISTENT_ANIMATION_CACHE, to = "ANIMATION"),
-        @ViewDebug.IntToString(from = PERSISTENT_SCROLLING_CACHE, to = "SCROLLING"),
-        @ViewDebug.IntToString(from = PERSISTENT_ALL_CACHES,      to = "ALL")
+            @ViewDebug.IntToString(from = PERSISTENT_NO_CACHE,        to = "NONE"),
+            @ViewDebug.IntToString(from = PERSISTENT_ANIMATION_CACHE, to = "ANIMATION"),
+            @ViewDebug.IntToString(from = PERSISTENT_SCROLLING_CACHE, to = "SCROLLING"),
+            @ViewDebug.IntToString(from = PERSISTENT_ALL_CACHES,      to = "ALL")
     })
     public int getPersistentDrawingCache() {
         return mPersistentDrawingCache;
@@ -5716,8 +5716,8 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
     @Override
     void invalidateInheritedLayoutMode(int layoutModeOfRoot) {
         if (mLayoutMode == LAYOUT_MODE_UNDEFINED ||
-            mLayoutMode == layoutModeOfRoot ||
-            hasBooleanFlag(FLAG_LAYOUT_MODE_WAS_EXPLICITLY_SET)) {
+                mLayoutMode == layoutModeOfRoot ||
+                hasBooleanFlag(FLAG_LAYOUT_MODE_WAS_EXPLICITLY_SET)) {
             return;
         }
         setLayoutMode(LAYOUT_MODE_UNDEFINED, false);
@@ -5911,7 +5911,7 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
      * @param parentHeightMeasureSpec The height requirements for this view
      */
     protected void measureChild(View child, int parentWidthMeasureSpec,
-            int parentHeightMeasureSpec) {
+                                int parentHeightMeasureSpec) {
         final LayoutParams lp = child.getLayoutParams();
 
         final int childWidthMeasureSpec = getChildMeasureSpec(parentWidthMeasureSpec,
@@ -5937,8 +5937,8 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
      *        vertically (possibly by other children of the parent)
      */
     protected void measureChildWithMargins(View child,
-            int parentWidthMeasureSpec, int widthUsed,
-            int parentHeightMeasureSpec, int heightUsed) {
+                                           int parentWidthMeasureSpec, int widthUsed,
+                                           int parentHeightMeasureSpec, int heightUsed) {
         final MarginLayoutParams lp = (MarginLayoutParams) child.getLayoutParams();
 
         final int childWidthMeasureSpec = getChildMeasureSpec(parentWidthMeasureSpec,
@@ -5980,60 +5980,60 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
         int resultMode = 0;
 
         switch (specMode) {
-        // Parent has imposed an exact size on us
-        case MeasureSpec.EXACTLY:
-            if (childDimension >= 0) {
-                resultSize = childDimension;
-                resultMode = MeasureSpec.EXACTLY;
-            } else if (childDimension == LayoutParams.MATCH_PARENT) {
-                // Child wants to be our size. So be it.
-                resultSize = size;
-                resultMode = MeasureSpec.EXACTLY;
-            } else if (childDimension == LayoutParams.WRAP_CONTENT) {
-                // Child wants to determine its own size. It can't be
-                // bigger than us.
-                resultSize = size;
-                resultMode = MeasureSpec.AT_MOST;
-            }
-            break;
+            // Parent has imposed an exact size on us
+            case MeasureSpec.EXACTLY:
+                if (childDimension >= 0) {
+                    resultSize = childDimension;
+                    resultMode = MeasureSpec.EXACTLY;
+                } else if (childDimension == LayoutParams.MATCH_PARENT) {
+                    // Child wants to be our size. So be it.
+                    resultSize = size;
+                    resultMode = MeasureSpec.EXACTLY;
+                } else if (childDimension == LayoutParams.WRAP_CONTENT) {
+                    // Child wants to determine its own size. It can't be
+                    // bigger than us.
+                    resultSize = size;
+                    resultMode = MeasureSpec.AT_MOST;
+                }
+                break;
 
-        // Parent has imposed a maximum size on us
-        case MeasureSpec.AT_MOST:
-            if (childDimension >= 0) {
-                // Child wants a specific size... so be it
-                resultSize = childDimension;
-                resultMode = MeasureSpec.EXACTLY;
-            } else if (childDimension == LayoutParams.MATCH_PARENT) {
-                // Child wants to be our size, but our size is not fixed.
-                // Constrain child to not be bigger than us.
-                resultSize = size;
-                resultMode = MeasureSpec.AT_MOST;
-            } else if (childDimension == LayoutParams.WRAP_CONTENT) {
-                // Child wants to determine its own size. It can't be
-                // bigger than us.
-                resultSize = size;
-                resultMode = MeasureSpec.AT_MOST;
-            }
-            break;
+            // Parent has imposed a maximum size on us
+            case MeasureSpec.AT_MOST:
+                if (childDimension >= 0) {
+                    // Child wants a specific size... so be it
+                    resultSize = childDimension;
+                    resultMode = MeasureSpec.EXACTLY;
+                } else if (childDimension == LayoutParams.MATCH_PARENT) {
+                    // Child wants to be our size, but our size is not fixed.
+                    // Constrain child to not be bigger than us.
+                    resultSize = size;
+                    resultMode = MeasureSpec.AT_MOST;
+                } else if (childDimension == LayoutParams.WRAP_CONTENT) {
+                    // Child wants to determine its own size. It can't be
+                    // bigger than us.
+                    resultSize = size;
+                    resultMode = MeasureSpec.AT_MOST;
+                }
+                break;
 
-        // Parent asked to see how big we want to be
-        case MeasureSpec.UNSPECIFIED:
-            if (childDimension >= 0) {
-                // Child wants a specific size... let him have it
-                resultSize = childDimension;
-                resultMode = MeasureSpec.EXACTLY;
-            } else if (childDimension == LayoutParams.MATCH_PARENT) {
-                // Child wants to be our size... find out how big it should
-                // be
-                resultSize = View.sUseZeroUnspecifiedMeasureSpec ? 0 : size;
-                resultMode = MeasureSpec.UNSPECIFIED;
-            } else if (childDimension == LayoutParams.WRAP_CONTENT) {
-                // Child wants to determine its own size.... find out how
-                // big it should be
-                resultSize = View.sUseZeroUnspecifiedMeasureSpec ? 0 : size;
-                resultMode = MeasureSpec.UNSPECIFIED;
-            }
-            break;
+            // Parent asked to see how big we want to be
+            case MeasureSpec.UNSPECIFIED:
+                if (childDimension >= 0) {
+                    // Child wants a specific size... let him have it
+                    resultSize = childDimension;
+                    resultMode = MeasureSpec.EXACTLY;
+                } else if (childDimension == LayoutParams.MATCH_PARENT) {
+                    // Child wants to be our size... find out how big it should
+                    // be
+                    resultSize = View.sUseZeroUnspecifiedMeasureSpec ? 0 : size;
+                    resultMode = MeasureSpec.UNSPECIFIED;
+                } else if (childDimension == LayoutParams.WRAP_CONTENT) {
+                    // Child wants to determine its own size.... find out how
+                    // big it should be
+                    resultSize = View.sUseZeroUnspecifiedMeasureSpec ? 0 : size;
+                    resultMode = MeasureSpec.UNSPECIFIED;
+                }
+                break;
         }
         return MeasureSpec.makeMeasureSpec(resultSize, resultMode);
     }
@@ -6174,28 +6174,28 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
 
     private LayoutTransition.TransitionListener mLayoutTransitionListener =
             new LayoutTransition.TransitionListener() {
-        @Override
-        public void startTransition(LayoutTransition transition, ViewGroup container,
-                View view, int transitionType) {
-            // We only care about disappearing items, since we need special logic to keep
-            // those items visible after they've been 'removed'
-            if (transitionType == LayoutTransition.DISAPPEARING) {
-                startViewTransition(view);
-            }
-        }
+                @Override
+                public void startTransition(LayoutTransition transition, ViewGroup container,
+                                            View view, int transitionType) {
+                    // We only care about disappearing items, since we need special logic to keep
+                    // those items visible after they've been 'removed'
+                    if (transitionType == LayoutTransition.DISAPPEARING) {
+                        startViewTransition(view);
+                    }
+                }
 
-        @Override
-        public void endTransition(LayoutTransition transition, ViewGroup container,
-                View view, int transitionType) {
-            if (mLayoutCalledWhileSuppressed && !transition.isChangingLayout()) {
-                requestLayout();
-                mLayoutCalledWhileSuppressed = false;
-            }
-            if (transitionType == LayoutTransition.DISAPPEARING && mTransitioningViews != null) {
-                endViewTransition(view);
-            }
-        }
-    };
+                @Override
+                public void endTransition(LayoutTransition transition, ViewGroup container,
+                                          View view, int transitionType) {
+                    if (mLayoutCalledWhileSuppressed && !transition.isChangingLayout()) {
+                        requestLayout();
+                        mLayoutCalledWhileSuppressed = false;
+                    }
+                    if (transitionType == LayoutTransition.DISAPPEARING && mTransitioningViews != null) {
+                        endViewTransition(view);
+                    }
+                }
+            };
 
     /**
      * Tells this ViewGroup to suppress all layout() calls until layout
@@ -6660,7 +6660,7 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
      */
     @Override
     public void onNestedScroll(View target, int dxConsumed, int dyConsumed,
-            int dxUnconsumed, int dyUnconsumed) {
+                               int dxUnconsumed, int dyUnconsumed) {
         // Do nothing
     }
 
@@ -6798,8 +6798,8 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
          * in API Level 8) or WRAP_CONTENT, or an exact size.
          */
         @ViewDebug.ExportedProperty(category = "layout", mapping = {
-            @ViewDebug.IntToString(from = MATCH_PARENT, to = "MATCH_PARENT"),
-            @ViewDebug.IntToString(from = WRAP_CONTENT, to = "WRAP_CONTENT")
+                @ViewDebug.IntToString(from = MATCH_PARENT, to = "MATCH_PARENT"),
+                @ViewDebug.IntToString(from = WRAP_CONTENT, to = "WRAP_CONTENT")
         })
         public int width;
 
@@ -6809,8 +6809,8 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
          * in API Level 8) or WRAP_CONTENT, or an exact size.
          */
         @ViewDebug.ExportedProperty(category = "layout", mapping = {
-            @ViewDebug.IntToString(from = MATCH_PARENT, to = "MATCH_PARENT"),
-            @ViewDebug.IntToString(from = WRAP_CONTENT, to = "WRAP_CONTENT")
+                @ViewDebug.IntToString(from = MATCH_PARENT, to = "MATCH_PARENT"),
+                @ViewDebug.IntToString(from = WRAP_CONTENT, to = "WRAP_CONTENT")
         })
         public int height;
 
@@ -7110,7 +7110,7 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
                         DEFAULT_MARGIN_RELATIVE);
 
                 if (isMarginRelative()) {
-                   mMarginFlags |= NEED_RESOLUTION_MASK;
+                    mMarginFlags |= NEED_RESOLUTION_MASK;
                 }
             }
 
@@ -7475,7 +7475,7 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
                 } else {
                     target = sRecycleBin;
                     sRecycleBin = target.next;
-                     sRecycledCount--;
+                    sRecycledCount--;
                     target.next = null;
                 }
             }
@@ -7522,7 +7522,7 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
                 } else {
                     target = sRecycleBin;
                     sRecycleBin = target.next;
-                     sRecycledCount--;
+                    sRecycledCount--;
                     target.next = null;
                 }
             }
