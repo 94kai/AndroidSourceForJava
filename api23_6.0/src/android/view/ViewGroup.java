@@ -2210,7 +2210,7 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
                                 }
                                 mLastTouchDownX = ev.getX();
                                 mLastTouchDownY = ev.getY();
-                                newTouchTarget = addTouchTarget(child, idBitsToAssign);
+                                newTouchTarget = addTouchTarget(child, idBitsToAssign);//在这里给mFirstTouchTarget赋值
                                 alreadyDispatchedToNewTouchTarget = true;
                                 break;
                             }
@@ -2235,24 +2235,24 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
             }
 
             // Dispatch to touch targets.
-            if (mFirstTouchTarget == null) {
+            if (mFirstTouchTarget == null) {//走到这里说明：该事件应该自己处理，而不是子View
                 // No touch targets so treat this as an ordinary view.
                 handled = dispatchTransformedTouchEvent(ev, canceled, null,
                         TouchTarget.ALL_POINTER_IDS);
-            } else {
+            } else {//走到这里说明：1.该事件是子View处理 2.可能是down，也可能是其他事件（down和其他事件会分情况处理，具体往下看）
                 // Dispatch to touch targets, excluding the new touch target if we already
                 // dispatched to it.  Cancel touch targets if necessary.
                 TouchTarget predecessor = null;
                 TouchTarget target = mFirstTouchTarget;
                 while (target != null) {
                     final TouchTarget next = target.next;
-                    if (alreadyDispatchedToNewTouchTarget && target == newTouchTarget) {
+                    if (alreadyDispatchedToNewTouchTarget && target == newTouchTarget) {//说明一定是down，因为alreadyDispatchedToNewTouchTarget只有在上面进入down的时候，并且handled了的时候，才会为true，所以走这个分支
                         handled = true;
-                    } else {
+                    } else {//说明一定不是down，理由如上
                         final boolean cancelChild = resetCancelNextUpFlag(target.child)
                                 || intercepted;
                         if (dispatchTransformedTouchEvent(ev, cancelChild,
-                                target.child, target.pointerIdBits)) {//这里困惑了好久，看了开发艺术的结论懂了。如果子View的dispatch返回false，如果是在这块，并不会对事件的分发产生影响，后续的事件依旧会传到子View。但是如果是DOWN的时候，子View的dispatch返回了false，那代码逻辑在上面，事件会交给父亲来处理。针对这里的情况 ，如果返回false，事件就会消失，但是一路向上returnfalse，最后交给activity处理
+                                target.child, target.pointerIdBits)) {//这里困惑了好久，看了开发艺术的结论懂了。如果子View的dispatch返回false，如果是在这块，并不会对事件的分发产生影响，后续的事件依旧会传到子View，只是false的事件都被取消，最后去了activity（一路false上去）。但是如果是DOWN的时候，子View的dispatch返回了false，那代码逻辑在上面，事件会交给父亲来处理。针对这里的情况 ，如果返回false，事件就会消失，但是一路向上returnfalse，最后交给activity处理
                             handled = true;
                         }
                         if (cancelChild) {
