@@ -160,13 +160,13 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
     TypedValue mFixedHeightMinor;
 
     // This is the top-level view of the window, containing the window decor.
-    private DecorView mDecor;
+    private DecorView mDecor;//猜想：好像mDecor只是被Window引用，两者并没有别的关系
 
     // This is the view in which the window contents are placed. It is either
     // mDecor itself, or a child of mDecor where the contents go.
-    private ViewGroup mContentParent;
+    private ViewGroup mContentParent;//就是android.id.content，我们设置的contentview就在这里面
 
-    private ViewGroup mContentRoot;
+    private ViewGroup mContentRoot;//id为android.id.content的父容器
 
     Callback2 mTakeSurfaceCallback;
 
@@ -3645,7 +3645,7 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
         }
     }
 
-    protected ViewGroup generateLayout(DecorView decor) {
+    protected ViewGroup generateLayout(DecorView decor) {//返回值是id为android.id.content的viewgroup，我们的contentView就是他的第一个孩子
         // Apply data from current theme.
 
         TypedArray a = getWindowStyle();
