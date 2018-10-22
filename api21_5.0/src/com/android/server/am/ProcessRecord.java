@@ -16,12 +16,6 @@
 
 package com.android.server.am;
 
-import android.util.ArraySet;
-import android.util.EventLog;
-import android.util.Slog;
-import com.android.internal.app.ProcessStats;
-import com.android.internal.os.BatteryStatsImpl;
-
 import android.app.ActivityManager;
 import android.app.Dialog;
 import android.app.IApplicationThread;
@@ -37,8 +31,15 @@ import android.os.Process;
 import android.os.SystemClock;
 import android.os.UserHandle;
 import android.util.ArrayMap;
+import android.util.ArraySet;
+import android.util.EventLog;
+import android.util.EventLogTags;
 import android.util.PrintWriterPrinter;
+import android.util.Slog;
 import android.util.TimeUtils;
+
+import com.android.internal.app.ProcessStats;
+import com.android.internal.os.BatteryStatsImpl;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
