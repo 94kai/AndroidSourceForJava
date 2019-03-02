@@ -1029,7 +1029,7 @@ public final class ActivityStackSupervisor implements DisplayListener {
                         componentSpecified = true;
                         try {
                             ResolveInfo rInfo =
-                                AppGlobals.getPackageManager().resolveIntent(
+                                AppGlobals.getPackageManager().resolveIntent(//通过PackageManagerService来解析intent
                                         intent, null,
                                         PackageManager.MATCH_DEFAULT_ONLY
                                         | ActivityManagerService.STOCK_PM_FLAGS, userId);

@@ -2102,7 +2102,7 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
             // Check for interception.
             final boolean intercepted;
             if (actionMasked == MotionEvent.ACTION_DOWN
-                    || mFirstTouchTarget != null) {
+                    || mFirstTouchTarget != null) {//如果是down事件，或者已经有子view会处理，那就要判断是否拦截
                 final boolean disallowIntercept = (mGroupFlags & FLAG_DISALLOW_INTERCEPT) != 0;
                 if (!disallowIntercept) {
                     intercepted = onInterceptTouchEvent(ev);
@@ -2110,7 +2110,7 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
                 } else {
                     intercepted = false;
                 }
-            } else {
+            } else {//非down事件，而且这个事件是由自己处理，那肯定是拦截
                 // There are no touch targets and this action is not an initial down
                 // so this view group continues to intercept touches.
                 intercepted = true;
@@ -2211,7 +2211,7 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
                                 mLastTouchDownX = ev.getX();
                                 mLastTouchDownY = ev.getY();
                                 newTouchTarget = addTouchTarget(child, idBitsToAssign);//在这里给mFirstTouchTarget赋值
-                                alreadyDispatchedToNewTouchTarget = true;
+                                alreadyDispatchedToNewTouchTarget = true;//只在这里赋值，说明，如果它是true，那么这个事件一定是true
                                 break;
                             }
 

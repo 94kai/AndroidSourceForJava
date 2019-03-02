@@ -3812,7 +3812,7 @@ public final class ActivityManagerService extends ActivityManagerNative
         userId = handleIncomingUser(Binder.getCallingPid(), Binder.getCallingUid(), userId,
                 false, ALLOW_FULL_ONLY, "startActivity", null);
         // TODO: Switch to user app stacks here.
-        return mStackSupervisor.startActivityMayWait(caller, -1, callingPackage, intent,
+        return mStackSupervisor.startActivityMayWait(caller, -1, callingPackage, intent,//mStackSupervisor是用来管理任务栈（ActivityStack）的
                 resolvedType, null, null, resultTo, resultWho, requestCode, startFlags,
                 profilerInfo, null, null, options, false, userId, null, null);
     }
